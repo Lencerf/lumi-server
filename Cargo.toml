@@ -1,0 +1,20 @@
+[package]
+name = "lumi-server"
+version = "0.1.0"
+authors = ["Lencerf <changyuan.lv@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+lumi = { git = "https://github.com/Lencerf/lumi.git", rev = "9aea580", features = ["serde"]}
+chrono = {version = "0.4", features = ["serde"]}
+lumi-server-defs = {path = "./lumi-server-defs"}
+rust_decimal = {version = "1.10.3"}
+clap = {version = "2", features = ["wrap_help", "suggestions"]}
+tokio = { version = "1", features = ["full"] }
+warp = "0.3"
+serde_json = "1"
+mime_guess = "2"
+include_dir = "0.6"
+headers = "0.3.4"
+log = "0.4"
+pretty_env_logger = "0.3"
