@@ -22,7 +22,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 const AUTHOR: &str = env!("CARGO_PKG_AUTHORS");
 
 #[tokio::main]
-async fn main() {
+async fn main() -> std::io::Result<()> {
     pretty_env_logger::init();
     let root_index = warp::path::end().map(|| {
         let index = get_file("index.html").unwrap();
@@ -83,8 +83,11 @@ async fn main() {
     let (_addr, server) = warp::serve(routes).bind_with_graceful_shutdown(addr, async {
         rx.await.ok();
     });
+    let handle = tokio::task::spawn(server);
 
-    tokio::task::spawn(server);
-    signal::ctrl_c().await.ok();
-    let _ = tx.send(());
+    signal::ctrl_c().await?;
+    tx.send(()).ok();
+    
+    handle.await?;
+    Ok(())
 }
