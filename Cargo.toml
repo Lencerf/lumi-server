@@ -5,6 +5,14 @@ authors = ["Lencerf <changyuan.lv@gmail.com>"]
 edition = "2018"
 license = "MIT"
 
+[workspace]
+members = [
+    "lumi-server-defs"
+]
+exclude = [
+    "lumi-web"
+]
+
 [dependencies]
 lumi = { git = "https://github.com/Lencerf/lumi.git", rev = "9aea580", features = ["serde"]}
 chrono = {version = "0.4", features = ["serde"]}
