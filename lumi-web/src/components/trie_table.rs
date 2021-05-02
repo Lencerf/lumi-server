@@ -5,16 +5,19 @@ use yew::{prelude::*, services::fetch::FetchTask};
 use crate::api;
 use crate::route::Route;
 use yew_router::components::RouterAnchor;
+use lumi_server_defs::TrieOptions;
 
 type Trie = api::Trie;
 
 #[derive(Properties, Clone, PartialEq, Eq)]
 pub struct Props {
-    pub root: String,
+    pub root: &'static str,
+    pub options: String,
 }
 
 struct State {
     trie: Option<Trie>,
+    options: TrieOptions,
     get_trie_error: Option<Error>,
     get_trie_loaded: bool,
 }
@@ -37,12 +40,14 @@ impl Component for TrieTable {
 
     fn create(props: Self::Properties, link: ComponentLink<Self>) -> Self {
         link.send_message(Msg::GetTrie);
+        let options = serde_urlencoded::from_str(&props.options).unwrap_or_default();
         Self {
             props,
             link,
             task: None,
             state: State {
                 trie: None,
+                options,
                 get_trie_error: None,
                 get_trie_loaded: false,
             },
@@ -78,7 +83,7 @@ impl Component for TrieTable {
                         Err(err) => Msg::GetTrieError(err),
                     }
                 });
-                self.task = Some(api::get_trie(&self.props.root, handler));
+                self.task = Some(api::get_trie(&self.props.root, &self.state.options, handler));
             }
         }
         true

@@ -1,6 +1,6 @@
 use anyhow::Error;
 use lumi::Transaction;
-use lumi_server_defs::{FilterOptions, JournalItem, Position, TrieTable};
+use lumi_server_defs::{FilterOptions, JournalItem, Position, TrieTable, TrieOptions};
 use std::collections::HashMap;
 use std::rc::Rc;
 use yew::callback::Callback;
@@ -17,8 +17,9 @@ pub fn get_errors(callback: FetchCallback<Errors>) -> FetchTask {
 }
 
 pub type Trie = TrieTable<String>;
-pub fn get_trie(root: &str, callback: FetchCallback<Trie>) -> FetchTask {
-    let req = Request::get(format!("/api/trie/{}", root))
+pub fn get_trie(root: &str, options: &TrieOptions, callback: FetchCallback<Trie>) -> FetchTask {
+    let query = serde_urlencoded::to_string(&options).unwrap();
+    let req = Request::get(format!("/api/trie/{}?{}", root, query))
         .body(Nothing)
         .unwrap();
     FetchService::fetch(req, callback).unwrap()

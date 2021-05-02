@@ -4,7 +4,7 @@ use std::{
     hash::Hash,
 };
 
-use lumi::{BalanceSheet, Currency, UnitCost};
+use lumi::{BalanceSheet, Currency, Ledger, UnitCost};
 use rust_decimal::prelude::Zero;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
@@ -25,6 +25,13 @@ pub struct FilterOptions {
     pub old_first: Option<bool>,
     pub account: Option<String>,
 }
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq, Default)]
+#[serde(default)]
+pub struct TrieOptions {
+    pub show_closed: Option<bool>,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub struct TrieNode<S: Eq + Hash> {
     pub numbers: HashMap<S, Decimal>,
@@ -32,12 +39,17 @@ pub struct TrieNode<S: Eq + Hash> {
 }
 
 pub fn build_trie<'s>(
-    balance: &'s BalanceSheet,
+    ledger: &'s Ledger,
     root_account: &str,
+    options: TrieOptions,
 ) -> (TrieNode<&'s str>, HashSet<&'s str>) {
-    let mut root = TrieNode::default();
+    let show_closed = options.show_closed.unwrap_or(false);
+    let mut root_node = TrieNode::default();
     let mut currencies = HashSet::new();
-    for (account, account_map) in balance {
+    for (account, account_map) in ledger.balance_sheet() {
+        if ledger.accounts()[account].close().is_some() && !show_closed {
+            continue;
+        }
         let mut parts = account.split(':');
         if parts.next() != Some(&root_account) {
             continue;
@@ -59,7 +71,7 @@ pub fn build_trie<'s>(
                 }
             }
         }
-        let mut leaf_node = &mut root;
+        let mut leaf_node = &mut root_node;
         for key in account.split(':') {
             leaf_node = leaf_node.nodes.entry(key).or_default();
             for (currency, number) in account_holdings.iter() {
@@ -67,7 +79,7 @@ pub fn build_trie<'s>(
             }
         }
     }
-    (root, currencies)
+    (root_node, currencies)
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -115,15 +127,16 @@ fn build_trie_table_helper<'s, 'r: 's>(
 }
 
 pub fn build_trie_table<'s, 'r: 's>(
-    root: &'r str,
-    balance: &'s BalanceSheet,
+    ledger: &'s Ledger,
+    root_account: &'r str,
+    options: TrieOptions,
 ) -> Option<TrieTable<&'s str>> {
-    let (trie, currencies) = build_trie(balance, root);
-    if let Some(node) = trie.nodes.get(root) {
+    let (trie, currencies) = build_trie(ledger, root_account, options);
+    if let Some(node) = trie.nodes.get(root_account) {
         let mut currencies: Vec<_> = currencies.into_iter().collect();
         currencies.sort();
         let mut rows = Vec::new();
-        build_trie_table_helper(root, 0, node, &currencies, &mut rows);
+        build_trie_table_helper(root_account, 0, node, &currencies, &mut rows);
         Some(TrieTable { rows, currencies })
     } else {
         None

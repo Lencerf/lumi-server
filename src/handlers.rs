@@ -1,16 +1,17 @@
 use lumi::{Error, Ledger, Transaction, TxnFlag};
-use lumi_server_defs::{balance_sheet_to_list, build_trie_table, FilterOptions, JournalItem};
+use lumi_server_defs::{FilterOptions, JournalItem, TrieOptions, balance_sheet_to_list, build_trie_table};
 use rust_decimal::Decimal;
 use std::sync::Arc;
 use std::{collections::HashMap, convert::Infallible};
 use tokio::sync::RwLock;
 
 pub async fn trie(
-    root: String,
+    root_account: String,
+    options: TrieOptions,
     ledger: Arc<RwLock<Ledger>>,
 ) -> Result<impl warp::Reply, Infallible> {
     let ledger = ledger.read().await;
-    let trie_table = build_trie_table(root.as_str(), ledger.balance_sheet());
+    let trie_table = build_trie_table(&ledger, &root_account, options);
     let result = trie_table.unwrap_or_default();
     Ok(warp::reply::json(&result))
 }

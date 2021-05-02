@@ -1,6 +1,6 @@
 use super::handlers;
 use lumi::{Error, Ledger};
-use lumi_server_defs::FilterOptions;
+use lumi_server_defs::{FilterOptions, TrieOptions};
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use warp::Filter;
@@ -54,6 +54,7 @@ pub fn get_trie(
     warp::get()
         .and(warp::path("trie"))
         .and(warp::path::param())
+        .and(warp::query::<TrieOptions>())
         .and(with_ledger(ledger))
         .and_then(handlers::trie)
 }

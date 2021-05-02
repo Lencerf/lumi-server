@@ -71,11 +71,11 @@ impl Component for App {
                     html! {
                         <>
                             <div class="column">
-                                <TrieTable root="Assets" />
+                                <TrieTable root="Assets" options={qs}/>
                             </div>
                             <div class="column">
-                                <TrieTable root="Liabilities" />
-                                <TrieTable root="Equity" />
+                                <TrieTable root="Liabilities" options={qs}/>
+                                <TrieTable root="Equity" options={qs}/>
                             </div>
                         </>
                     }
@@ -84,10 +84,10 @@ impl Component for App {
                     html! {
                         <>
                             <div class="column">
-                                <TrieTable root="Income" />
+                                <TrieTable root="Income" options={qs}/>
                             </div>
                             <div class="column">
-                                <TrieTable root="Expenses" />
+                                <TrieTable root="Expenses" options={qs}/>
                             </div>
                         </>
                     }
