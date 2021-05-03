@@ -14,7 +14,7 @@ mod handlers;
 
 static WEB_DIR: Dir = include_dir!("lumi-web/static");
 
-fn get_file<'a>(path: &str) -> Option<&'static [u8]> {
+fn get_file(path: &str) -> Option<&'static [u8]> {
     WEB_DIR.get_file(path).map(|f| f.contents)
 }
 
@@ -45,17 +45,15 @@ async fn main() -> std::io::Result<()> {
             let mut resp = warp::reply::Response::new(contents.into());
             resp.headers_mut().typed_insert(ContentType::from(mime));
             resp
+        } else if pages.contains(path.as_str()) {
+            let index = get_file("index.html").unwrap();
+            let mut resp = warp::reply::Response::new(index.into());
+            resp.headers_mut().typed_insert(ContentType::html());
+            resp
         } else {
-            if pages.contains(path.as_str()) {
-                let index = get_file("index.html").unwrap();
-                let mut resp = warp::reply::Response::new(index.into());
-                resp.headers_mut().typed_insert(ContentType::html());
-                resp
-            } else {
-                let mut resp = warp::reply::Response::default();
-                *resp.status_mut() = warp::http::StatusCode::NOT_FOUND;
-                resp
-            }
+            let mut resp = warp::reply::Response::default();
+            *resp.status_mut() = warp::http::StatusCode::NOT_FOUND;
+            resp
         }
     });
     let get_file = warp::get().and(root_index.or(file));
@@ -71,10 +69,7 @@ async fn main() -> std::io::Result<()> {
     let addr: SocketAddr = matches
         .value_of("ADDR")
         .and_then(|addr| addr.parse().ok())
-        .unwrap_or(SocketAddr::new(
-            IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)),
-            3000,
-        ));
+        .unwrap_or_else(|| SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 3000));
     let (ledger, errors) = Ledger::from_file(path);
     let api = filters::ledger_api(Arc::new(RwLock::new(ledger)), Arc::new(RwLock::new(errors)));
 
@@ -87,7 +82,7 @@ async fn main() -> std::io::Result<()> {
 
     signal::ctrl_c().await?;
     tx.send(()).ok();
-    
+
     handle.await?;
     Ok(())
 }

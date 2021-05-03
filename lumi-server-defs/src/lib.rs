@@ -5,7 +5,6 @@ use std::{
 };
 
 use lumi::{BalanceSheet, Currency, Ledger, UnitCost};
-use rust_decimal::prelude::Zero;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
@@ -99,7 +98,7 @@ fn build_trie_table_helper<'s, 'r: 's>(
     root: &'r str,
     level: usize,
     node: &TrieNode<&'s str>,
-    currencies: &Vec<&'s str>,
+    currencies: &[&'s str],
     rows: &mut Vec<TrieTableRow<&'s str>>,
 ) {
     let numbers = currencies
@@ -134,7 +133,7 @@ pub fn build_trie_table<'s, 'r: 's>(
     let (trie, currencies) = build_trie(ledger, root_account, options);
     if let Some(node) = trie.nodes.get(root_account) {
         let mut currencies: Vec<_> = currencies.into_iter().collect();
-        currencies.sort();
+        currencies.sort_unstable();
         let mut rows = Vec::new();
         build_trie_table_helper(root_account, 0, node, &currencies, &mut rows);
         Some(TrieTable { rows, currencies })
@@ -146,7 +145,7 @@ pub fn build_trie_table<'s, 'r: 's>(
 pub fn balance_sheet_to_list(sheet: &BalanceSheet) -> HashMap<String, Vec<Position>> {
     let mut result = HashMap::new();
     for (account, account_map) in sheet {
-        let list = result.entry(account.to_string()).or_insert(Vec::new());
+        let list = result.entry(account.to_string()).or_insert_with(Vec::new);
         for (currency, currency_map) in account_map {
             for (cost, number) in currency_map {
                 list.push(Position {

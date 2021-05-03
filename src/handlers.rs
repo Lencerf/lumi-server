@@ -1,5 +1,7 @@
 use lumi::{Error, Ledger, Transaction, TxnFlag};
-use lumi_server_defs::{FilterOptions, JournalItem, TrieOptions, balance_sheet_to_list, build_trie_table};
+use lumi_server_defs::{
+    balance_sheet_to_list, build_trie_table, FilterOptions, JournalItem, TrieOptions,
+};
 use rust_decimal::Decimal;
 use std::sync::Arc;
 use std::{collections::HashMap, convert::Infallible};
@@ -98,12 +100,10 @@ pub async fn account_journal(
     } else {
         let num_skip = if old_first {
             (page - 1) * entries
+        } else if page * entries >= txns.len() {
+            0
         } else {
-            if page * entries >= txns.len() {
-                0
-            } else {
-                txns.len() - page * entries
-            }
+            txns.len() - page * entries
         };
         let mut running_balance: HashMap<&str, Decimal> = HashMap::new();
         if let Some(ref account) = account {
