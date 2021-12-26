@@ -88,7 +88,7 @@ pub fn build_trie<'s>(
             continue;
         }
         let mut parts = account.split(':');
-        if parts.next() != Some(&root_account) {
+        if parts.next() != Some(root_account) {
             continue;
         }
         let mut account_holdings: HashMap<&'s str, Decimal> = HashMap::new();
@@ -220,7 +220,7 @@ pub async fn account_journal(
         let mut running_balance: HashMap<&str, Decimal> = HashMap::new();
         if let Some(ref account) = account {
             for txn in txns.iter().take(num_skip) {
-                let _ = update_balance(txn, &account, &mut running_balance);
+                let _ = update_balance(txn, account, &mut running_balance);
             }
         }
         let num_take = if old_first {
@@ -234,7 +234,7 @@ pub async fn account_journal(
             .take(num_take)
             .map(|txn| {
                 if let Some(ref account) = account {
-                    let changes = update_balance(txn, &account, &mut running_balance);
+                    let changes = update_balance(txn, account, &mut running_balance);
                     JournalItem {
                         txn,
                         balance: running_balance.clone(),
