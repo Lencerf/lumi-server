@@ -1,11 +1,123 @@
-use lumi::{Error, Ledger, Transaction, TxnFlag};
+use lumi::{BalanceSheet, Error, Ledger, Transaction, TxnFlag};
 use lumi_server_defs::{
-    balance_sheet_to_list, build_trie_table, FilterOptions, JournalItem, TrieOptions,
+    FilterOptions, JournalItem, Position, TrieNode, TrieOptions, TrieTable, TrieTableRow,
 };
 use rust_decimal::Decimal;
 use std::sync::Arc;
-use std::{collections::HashMap, convert::Infallible};
+use std::{
+    collections::{HashMap, HashSet},
+    convert::Infallible,
+};
 use tokio::sync::RwLock;
+
+fn balance_sheet_to_list(sheet: &BalanceSheet) -> HashMap<String, Vec<Position>> {
+    let mut result = HashMap::new();
+    for (account, account_map) in sheet {
+        let list = result.entry(account.to_string()).or_insert_with(Vec::new);
+        for (currency, currency_map) in account_map {
+            for (cost, number) in currency_map {
+                list.push(Position {
+                    number: *number,
+                    currency: currency.clone(),
+                    cost: cost.clone(),
+                })
+            }
+        }
+    }
+    result
+}
+
+fn build_trie_table_helper<'s, 'r: 's>(
+    root: &'r str,
+    level: usize,
+    node: &TrieNode<&'s str>,
+    currencies: &[&'s str],
+    rows: &mut Vec<TrieTableRow<&'s str>>,
+) {
+    let numbers = currencies
+        .iter()
+        .map(|c| {
+            let number = node.numbers.get(*c).copied().unwrap_or_default();
+            if number.is_zero() {
+                String::new()
+            } else {
+                format!("{:.2}", number)
+            }
+        })
+        .collect();
+    let row = TrieTableRow {
+        level,
+        name: root,
+        numbers,
+    };
+    rows.push(row);
+    let mut sorted_kv: Vec<_> = node.nodes.iter().collect();
+    sorted_kv.sort_by_key(|kv| kv.0);
+    for (account, sub_trie) in sorted_kv {
+        build_trie_table_helper(account, level + 1, sub_trie, currencies, rows);
+    }
+}
+
+fn build_trie_table<'s, 'r: 's>(
+    ledger: &'s Ledger,
+    root_account: &'r str,
+    options: TrieOptions,
+) -> Option<TrieTable<&'s str>> {
+    let (trie, currencies) = build_trie(ledger, root_account, options);
+    if let Some(node) = trie.nodes.get(root_account) {
+        let mut currencies: Vec<_> = currencies.into_iter().collect();
+        currencies.sort_unstable();
+        let mut rows = Vec::new();
+        build_trie_table_helper(root_account, 0, node, &currencies, &mut rows);
+        Some(TrieTable { rows, currencies })
+    } else {
+        None
+    }
+}
+
+pub fn build_trie<'s>(
+    ledger: &'s Ledger,
+    root_account: &str,
+    options: TrieOptions,
+) -> (TrieNode<&'s str>, HashSet<&'s str>) {
+    let show_closed = options.show_closed.unwrap_or(false);
+    let mut root_node = TrieNode::default();
+    let mut currencies = HashSet::new();
+    for (account, account_map) in ledger.balance_sheet() {
+        if ledger.accounts()[account].close().is_some() && !show_closed {
+            continue;
+        }
+        let mut parts = account.split(':');
+        if parts.next() != Some(&root_account) {
+            continue;
+        }
+        let mut account_holdings: HashMap<&'s str, Decimal> = HashMap::new();
+        for (currency, cost_map) in account_map {
+            for (cost, number) in cost_map {
+                if number.is_zero() {
+                    continue;
+                }
+                if let Some(unit_cost) = cost {
+                    let cost_currency = unit_cost.amount.currency.as_str();
+                    *account_holdings.entry(cost_currency).or_default() +=
+                        unit_cost.amount.number * number;
+                    currencies.insert(cost_currency);
+                } else {
+                    *account_holdings.entry(currency.as_str()).or_default() += number;
+                    currencies.insert(currency.as_str());
+                }
+            }
+        }
+        let mut leaf_node = &mut root_node;
+        for key in account.split(':') {
+            leaf_node = leaf_node.nodes.entry(key).or_default();
+            for (currency, number) in account_holdings.iter() {
+                *leaf_node.numbers.entry(currency).or_default() += number;
+            }
+        }
+    }
+    (root_node, currencies)
+}
 
 pub async fn trie(
     root_account: String,
