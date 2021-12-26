@@ -12,7 +12,7 @@ use warp::Filter;
 mod filters;
 mod handlers;
 
-static WEB_DIR: Dir = include_dir!("lumi-web/static");
+static WEB_DIR: Dir = include_dir!("lumi-web/web");
 
 fn get_file(path: &str) -> Option<&'static [u8]> {
     WEB_DIR.get_file(path).map(|f| f.contents)
