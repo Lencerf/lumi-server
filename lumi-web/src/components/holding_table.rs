@@ -1,6 +1,7 @@
 use crate::api;
 use crate::components::AccountRef;
 use anyhow::Error;
+use chrono::MIN_DATE;
 use lumi_server_defs::Position;
 use rust_decimal::prelude::Zero;
 use std::collections::HashMap;
@@ -96,7 +97,14 @@ impl Component for HoldingTable {
                     continue;
                 }
                 let mut account_entries = account_map.iter().collect::<Vec<_>>();
-                account_entries.sort_by_key(|p| (&p.currency));
+                account_entries.sort_by_key(|p| {
+                    (
+                        &p.currency,
+                        p.cost
+                            .as_ref()
+                            .map_or(MIN_DATE.naive_local(), |cost| cost.date),
+                    )
+                });
                 for position in account_entries {
                     if position.number.is_zero() {
                         continue;
