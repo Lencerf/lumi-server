@@ -52,3 +52,8 @@ pub struct JournalItem<C: Hash + Eq, T> {
     pub balance: HashMap<C, Decimal>,
     pub changes: HashMap<C, Decimal>,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RefreshTime {
+    pub timestamp: i64
+}

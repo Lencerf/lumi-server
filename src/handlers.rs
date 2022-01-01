@@ -1,6 +1,6 @@
 use lumi::{BalanceSheet, Error, Ledger, Transaction, TxnFlag};
 use lumi_server_defs::{
-    FilterOptions, JournalItem, Position, TrieNode, TrieOptions, TrieTable, TrieTableRow,
+    FilterOptions, JournalItem, Position, TrieNode, TrieOptions, TrieTable, TrieTableRow, RefreshTime
 };
 use rust_decimal::Decimal;
 use std::sync::Arc;
@@ -9,6 +9,22 @@ use std::{
     convert::Infallible,
 };
 use tokio::sync::RwLock;
+
+pub async fn refresh(
+    ledger: Arc<RwLock<Ledger>>,
+    errors: Arc<RwLock<Vec<Error>>>,
+    path: String,
+) -> Result<impl warp::Reply, Infallible> {
+    let (new_ledger, new_errors) = Ledger::from_file(&path);
+    let (mut ledger, mut errors) = (ledger.write().await, errors.write().await);
+    // (ledger, errors) = (new_ledger, new_errors);
+    *ledger = new_ledger;
+    *errors = new_errors;
+    let timestamp = chrono::Utc::now().timestamp();
+    let reply = RefreshTime {timestamp};
+    log::info!("Ledger refreshed: {}", timestamp);
+    Ok(warp::reply::json(&reply))
+}
 
 fn balance_sheet_to_list(sheet: &BalanceSheet) -> HashMap<String, Vec<Position>> {
     let mut result = HashMap::new();

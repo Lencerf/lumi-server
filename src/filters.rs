@@ -17,12 +17,33 @@ fn with_errors(
     warp::any().map(move || errors.clone())
 }
 
+fn with_path<'a>(
+    path: String,
+) -> impl Filter<Extract = (String,), Error = std::convert::Infallible> + Clone {
+    warp::any().map(move || path.clone())
+}
+
+pub fn refresh(
+    ledger: Arc<RwLock<Ledger>>,
+    errors: Arc<RwLock<Vec<Error>>>,
+    path: String,
+) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
+    warp::path("refresh")
+        .and(warp::get())
+        .and(with_ledger(ledger))
+        .and(with_errors(errors))
+        .and(with_path(path))
+        .and_then(handlers::refresh)
+}
+
 pub fn ledger_api(
     ledger: Arc<RwLock<Ledger>>,
     errors: Arc<RwLock<Vec<Error>>>,
+    path: &str,
 ) -> impl Filter<Extract = (impl warp::Reply,), Error = warp::Rejection> + Clone {
     warp::path("api").and(
-        get_balances(ledger.clone())
+        refresh(ledger.clone(), errors.clone(), path.to_owned())
+            .or(get_balances(ledger.clone()))
             .or(get_journal_all(ledger.clone()))
             .or(get_journal(ledger.clone()))
             .or(get_trie(ledger))
