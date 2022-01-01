@@ -4,16 +4,16 @@ use yew::prelude::*;
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
-    pub callback: Callback<i64>
+    pub callback: Callback<i64>,
 }
 pub struct RefreshButton {
-    fetch_state: FetchState<i64>
+    fetch_state: FetchState<i64>,
 }
 
 pub enum Msg {
     Refresh,
     Success(i64),
-    Failure(Error)
+    Failure(Error),
 }
 
 impl Component for RefreshButton {
@@ -22,7 +22,7 @@ impl Component for RefreshButton {
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            fetch_state: FetchState::NotStarted
+            fetch_state: FetchState::NotStarted,
         }
     }
 
@@ -31,19 +31,17 @@ impl Component for RefreshButton {
             Msg::Success(timestamp) => {
                 self.fetch_state = FetchState::Success(timestamp);
                 ctx.props().callback.emit(timestamp);
-            },
+            }
             Msg::Failure(err) => {
                 self.fetch_state = FetchState::Failed(err);
-            },
+            }
             Msg::Refresh => {
                 self.fetch_state = FetchState::Fetching;
-                api::refresh(ctx, |result| {
-                    match result {
-                        Ok(timestamp) => Msg::Success(timestamp),
-                        Err(err) => Msg::Failure(err),
-                    }
+                api::refresh(ctx, |result| match result {
+                    Ok(timestamp) => Msg::Success(timestamp),
+                    Err(err) => Msg::Failure(err),
                 })
-            },
+            }
         }
         false
     }

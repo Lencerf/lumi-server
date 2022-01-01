@@ -6,6 +6,7 @@ use crate::route::Route;
 use anyhow::Error;
 use lumi_server_defs::{FilterOptions, DEFAULT_ENTRIES_PER_PAGE};
 use rust_decimal::Decimal;
+use yew::context::ContextHandle;
 
 use yew::prelude::*;
 use yew_router::components::Link;
@@ -25,6 +26,7 @@ pub struct JournalTable {
     state: State,
 
     fetch_state: FetchState<(Journal, usize)>,
+    _handle: ContextHandle<i64>,
 }
 
 pub enum Msg {
@@ -49,6 +51,10 @@ impl Component for JournalTable {
 
     fn create(ctx: &Context<Self>) -> Self {
         ctx.link().send_message(Msg::GetJournal);
+        let (_, handle) = ctx
+            .link()
+            .context::<i64>(ctx.link().callback(|_| Msg::GetJournal))
+            .expect("context to be set");
 
         let options = serde_urlencoded::from_str(&ctx.props().options).unwrap_or_default();
         Self {
@@ -57,6 +63,7 @@ impl Component for JournalTable {
                 options,
                 expand_postings: false,
             },
+            _handle: handle,
         }
     }
 

@@ -1,4 +1,4 @@
-use lumi_server_defs::{FilterOptions, JournalItem, Position, TrieOptions, TrieTable};
+use lumi_server_defs::{FilterOptions, JournalItem, Position, RefreshTime, TrieOptions, TrieTable};
 use std::{collections::HashMap, rc::Rc, string::ToString};
 use yew::{Component, Context};
 use yew_router::history::{BrowserHistory, History};
@@ -36,6 +36,21 @@ where
         let result = fetch_json_content(url).await;
         callback(result)
     });
+}
+
+pub fn refresh<C, F, M>(ctx: &Context<C>, callback: F)
+where
+    C: Component,
+    F: Fn(anyhow::Result<i64>) -> M + 'static,
+    M: Into<C::Message>,
+{
+    fetch(
+        ctx,
+        "api/refresh",
+        move |resp: anyhow::Result<RefreshTime>| {
+            callback(resp.map(|refresh_time| refresh_time.timestamp))
+        },
+    );
 }
 
 pub type LumiErrors = Vec<lumi::Error>;

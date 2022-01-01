@@ -1,7 +1,7 @@
 use crate::api::{self, FetchState, LumiErrors};
 use anyhow::Error;
 use lumi::ErrorLevel;
-use yew::prelude::*;
+use yew::{context::ContextHandle, prelude::*};
 
 pub enum Msg {
     GetErrors,
@@ -11,6 +11,7 @@ pub enum Msg {
 
 pub struct ErrorTable {
     fetch_state: FetchState<LumiErrors>,
+    _handle: ContextHandle<i64>,
 }
 
 impl Component for ErrorTable {
@@ -18,9 +19,14 @@ impl Component for ErrorTable {
     type Properties = ();
 
     fn create(ctx: &yew::Context<Self>) -> Self {
+        let (_, handle) = ctx
+            .link()
+            .context::<i64>(ctx.link().callback(|_| Msg::GetErrors))
+            .expect("context to be set");
         ctx.link().send_message(Msg::GetErrors);
         Self {
             fetch_state: FetchState::NotStarted,
+            _handle: handle,
         }
     }
 

@@ -1,5 +1,6 @@
 use anyhow::Error;
 
+use yew::context::ContextHandle;
 use yew::prelude::*;
 use yew_router::components::Link;
 
@@ -23,6 +24,7 @@ pub enum Msg {
 pub struct TrieTable {
     fetch_state: FetchState<Trie>,
     options: TrieOptions,
+    _handle: ContextHandle<i64>,
 }
 
 impl Component for TrieTable {
@@ -30,11 +32,16 @@ impl Component for TrieTable {
     type Properties = Props;
 
     fn create(ctx: &Context<Self>) -> Self {
+        let (_, handle) = ctx
+            .link()
+            .context::<i64>(ctx.link().callback(|_| Msg::GetTrie))
+            .expect("context to be set");
         ctx.link().send_message(Msg::GetTrie);
         let options = serde_urlencoded::from_str(&ctx.props().options).unwrap_or_default();
         Self {
             fetch_state: FetchState::NotStarted,
             options,
+            _handle: handle,
         }
     }
 

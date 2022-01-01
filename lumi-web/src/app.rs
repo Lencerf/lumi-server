@@ -1,4 +1,6 @@
-use crate::components::{ErrorTable, HoldingTable, JournalTable, Sidebar, TrieTable};
+use crate::components::{
+    ErrorTable, HoldingTable, JournalTable, RefreshButton, Sidebar, TrieTable,
+};
 use crate::route::Route;
 use std::rc::Rc;
 use yew::prelude::*;
@@ -34,9 +36,18 @@ fn main_content(props: &MainContentProps) -> Html {
         Route::Account { name } => name.as_str(),
         Route::Errors => "Errors",
     };
+    let timestamp = use_state_eq(|| 0i64);
+    let update_timestamp = {
+        let timestamp = timestamp.clone();
+        Callback::from(move |val| {
+            timestamp.set(val);
+            log::info!("Ledger updated: {}", val);
+        })
+    };
     let title_bar = html! {
         <header>
             <span id="title">{title}</span>
+            <RefreshButton callback={update_timestamp} />
         </header>
     };
     let qs = BrowserHistory::new().location().search();
@@ -99,7 +110,9 @@ fn main_content(props: &MainContentProps) -> Html {
         <div class="right-wrap">
             {title_bar}
             <main>
-                {content}
+                <ContextProvider<i64> context={*timestamp} >
+                    {content}
+                </ContextProvider<i64>>
             </main>
         </div>
     }

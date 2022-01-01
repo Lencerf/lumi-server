@@ -6,6 +6,7 @@ use lumi_server_defs::Position;
 
 use std::collections::HashMap;
 
+use yew::context::ContextHandle;
 use yew::prelude::*;
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {}
@@ -14,6 +15,7 @@ type HoldingMap = HashMap<String, Vec<Position>>;
 
 pub struct HoldingTable {
     fetch_state: FetchState<HoldingMap>,
+    _handle: ContextHandle<i64>,
 }
 
 pub enum Msg {
@@ -27,9 +29,14 @@ impl Component for HoldingTable {
     type Properties = Props;
 
     fn create(ctx: &Context<Self>) -> Self {
+        let (_, handle) = ctx
+            .link()
+            .context::<i64>(ctx.link().callback(|_| Msg::GetHoldings))
+            .expect("context to be set");
         ctx.link().send_message(Msg::GetHoldings);
         Self {
             fetch_state: FetchState::NotStarted,
+            _handle: handle,
         }
     }
 

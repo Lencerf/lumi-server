@@ -140,6 +140,16 @@ header {
   z-index: 50;
 }
 
+#refresh {
+  position: absolute;
+  right: 20px;
+  font-size: 15px;
+  padding: 4px 6px;
+  cursor: pointer;
+  background-color: white;
+  color: black;
+}
+
 #show_sidebar {
   font-size: 26pt;
   position: fixed;
