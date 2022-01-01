@@ -1,6 +1,6 @@
 mod account_ref;
 mod entry_selector;
-mod error_list;
+mod error_table;
 mod holding_table;
 mod journal_table;
 mod sidebar;
@@ -10,7 +10,7 @@ mod txn_cell;
 
 pub use account_ref::AccountRef;
 pub use entry_selector::EntrySelector;
-pub use error_list::ErrorList;
+pub use error_table::ErrorTable;
 pub use holding_table::HoldingTable;
 pub use journal_table::JournalTable;
 pub use sidebar::Sidebar;

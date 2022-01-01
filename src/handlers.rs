@@ -1,6 +1,7 @@
 use lumi::{BalanceSheet, Error, Ledger, Transaction, TxnFlag};
 use lumi_server_defs::{
-    FilterOptions, JournalItem, Position, TrieNode, TrieOptions, TrieTable, TrieTableRow, RefreshTime
+    FilterOptions, JournalItem, Position, RefreshTime, TrieNode, TrieOptions, TrieTable,
+    TrieTableRow,
 };
 use rust_decimal::Decimal;
 use std::sync::Arc;
@@ -21,7 +22,7 @@ pub async fn refresh(
     *ledger = new_ledger;
     *errors = new_errors;
     let timestamp = chrono::Utc::now().timestamp();
-    let reply = RefreshTime {timestamp};
+    let reply = RefreshTime { timestamp };
     log::info!("Ledger refreshed: {}", timestamp);
     Ok(warp::reply::json(&reply))
 }

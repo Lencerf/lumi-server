@@ -12,7 +12,7 @@ use warp::Filter;
 mod filters;
 mod handlers;
 
-static WEB_DIR: Dir = include_dir!("lumi-web/web");
+static WEB_DIR: Dir = include_dir!("lumi-web/dist");
 
 fn get_file(path: &str) -> Option<&'static [u8]> {
     WEB_DIR.get_file(path).map(|f| f.contents)
@@ -71,7 +71,11 @@ async fn main() -> std::io::Result<()> {
         .and_then(|addr| addr.parse().ok())
         .unwrap_or_else(|| SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), 3000));
     let (ledger, errors) = Ledger::from_file(path);
-    let api = filters::ledger_api(Arc::new(RwLock::new(ledger)), Arc::new(RwLock::new(errors)), path);
+    let api = filters::ledger_api(
+        Arc::new(RwLock::new(ledger)),
+        Arc::new(RwLock::new(errors)),
+        path,
+    );
 
     let routes = api.or(get_file).with(warp::log("lumi-server"));
     let (tx, rx) = oneshot::channel();

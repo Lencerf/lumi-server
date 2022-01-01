@@ -55,5 +55,5 @@ pub struct JournalItem<C: Hash + Eq, T> {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct RefreshTime {
-    pub timestamp: i64
+    pub timestamp: i64,
 }

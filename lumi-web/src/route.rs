@@ -1,19 +1,19 @@
 use yew_router::prelude::*;
 
-#[derive(Switch, Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Routable)]
 pub enum Route {
-    #[to = "/holdings"]
+    #[at("/holdings")]
     Holdings,
-    #[to = "/account/{name}"]
-    Account(String),
-    #[to = "/journal"]
+    #[at("/account/:name")]
+    Account { name: String },
+    #[at("/journal")]
     Journal,
-    #[to = "/income"]
+    #[at("/income")]
     Income,
-    #[to = "/errors"]
+    #[at("/errors")]
     Errors,
-    #[to = "/balance_sheet"]
+    #[at("/balance_sheet")]
     Balance,
-    #[to = "/"]
+    #[at("/")]
     Index,
 }

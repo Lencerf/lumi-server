@@ -41,7 +41,7 @@ div.right-wrap {
 /*   min-height: 100%; */
   box-sizing: border-box;   
   /*! overflow-y: scroll; */
-  transition: 1s;
+  transition: 0.3s;
 }
 
 @media only screen and (max-width: 479.98px) {
@@ -76,7 +76,7 @@ div.sidebar {
     left: 0px;
     visibility:visible;
   }
-  span#show_sidebar, span#hide_sidebar {
+  #show_sidebar, #hide_sidebar {
     visibility: hidden;
   }
 }
@@ -86,12 +86,17 @@ div.sidebar {
     visibility: none;
     left: -220px;
   }
-  span#show_sidebar, span#hide_sidebar {
+  #show_sidebar, #hide_sidebar {
     visibility: visible;
+  }
+
+  header span#title {
+    position: relative;
+    left: 30px;
   }
 }
 
-span#show_sidebar, span#hide_sidebar {
+#show_sidebar, #hide_sidebar {
   cursor: pointer;
 }
 
@@ -125,7 +130,6 @@ header {
   width: 100%;
   background-color: rgb(0, 101, 163);
   color: white;
-  font-size: 14pt;
   font-weight: 400; 
   padding: 0 7px 0 10px;
   align-items: center;
@@ -136,8 +140,15 @@ header {
   z-index: 50;
 }
 
-header #show_sidebar {
-  font-size: 20pt;
+#show_sidebar {
+  font-size: 26pt;
+  position: fixed;
+  z-index: 51;
+  padding: 0 7px 0 10px;
+  height: 45px;
+  align-items: center;
+  display: flex;
+  color: white;
 }
 
 nav {
@@ -256,6 +267,8 @@ table.txn, table.holdings, table.trie  {
   width: 100%;
 }
 
+
+
 table {
   border-collapse: collapse;
   box-sizing: border-box;
@@ -272,6 +285,10 @@ table.holdings tr:nth-child(odd), tr.even, table.trie tr:nth-child(odd) {
 
 table.holdings tr:nth-child(even), tr.odd, table.trie tr:nth-child(even) {
     background-color: #ffffff;
+}
+
+tr.hide {
+  display: none;
 }
 
 td.l0 {

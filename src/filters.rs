@@ -17,7 +17,7 @@ fn with_errors(
     warp::any().map(move || errors.clone())
 }
 
-fn with_path<'a>(
+fn with_path(
     path: String,
 ) -> impl Filter<Extract = (String,), Error = std::convert::Infallible> + Clone {
     warp::any().map(move || path.clone())

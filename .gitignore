@@ -1,5 +1,5 @@
 /target
 lumi-web/target
-lumi-web/web
+lumi-web/dist
 lumi-server-defs/target
 lumi-server-defs/Cargo.lock
