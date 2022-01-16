@@ -305,30 +305,3 @@ impl Component for JournalTable {
         }
     }
 }
-
-#[function_component(TestContent)]
-fn test_content() -> Html {
-    let c = use_context::<i64>().expect("no ctx found");
-    log::info!("test, stamp = {}", c);
-    html! {<p>{c}</p> }
-}
-
-struct ContextDemo;
-
-impl Component for ContextDemo {
-    type Message = ();
-    type Properties = ();
-
-    fn create(_ctx: &Context<Self>) -> Self {
-        Self
-    }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let (c, _) = ctx
-            .link()
-            .context::<i64>(Callback::noop())
-            .expect("context to be set");
-        log::info!("demo, stamp = {}", c);
-        html! {<p>{c}</p> }
-    }
-}
