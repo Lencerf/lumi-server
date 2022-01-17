@@ -17,12 +17,17 @@ pub fn app() -> Html {
 }
 
 fn switch(routes: &Route) -> Html {
-    html! { <MainContent route={routes.clone()} /> }
+    let qs = BrowserHistory::new().location().search();
+    let mut qs_chars = qs.chars();
+    qs_chars.next();
+    let qs: Rc<String> = Rc::new(String::from(qs_chars.as_str()));
+    html! { <MainContent route={routes.clone()} query={qs} /> }
 }
 
 #[derive(Properties, PartialEq)]
 struct MainContentProps {
     route: Route,
+    query: Rc<String>,
 }
 
 #[function_component(MainContent)]
@@ -50,10 +55,7 @@ fn main_content(props: &MainContentProps) -> Html {
             <RefreshButton callback={update_timestamp} />
         </header>
     };
-    let qs = BrowserHistory::new().location().search();
-    let mut qs_chars = qs.chars();
-    qs_chars.next();
-    let qs: Rc<String> = Rc::new(String::from(qs_chars.as_str()));
+    let qs = &props.query;
     let content = match routes {
         Route::Index => {
             html! {
@@ -64,11 +66,11 @@ fn main_content(props: &MainContentProps) -> Html {
             html! {
                 <>
                     <div class="column">
-                        <TrieTable root="Assets" options={&qs}/>
+                        <TrieTable root="Assets" options={qs}/>
                     </div>
                     <div class="column">
-                        <TrieTable root="Liabilities" options={&qs}/>
-                        <TrieTable root="Equity" options={&qs}/>
+                        <TrieTable root="Liabilities" options={qs}/>
+                        <TrieTable root="Equity" options={qs}/>
                     </div>
                 </>
             }
@@ -77,10 +79,10 @@ fn main_content(props: &MainContentProps) -> Html {
             html! {
                 <>
                     <div class="column">
-                        <TrieTable root="Income" options={&qs}/>
+                        <TrieTable root="Income" options={qs}/>
                     </div>
                     <div class="column">
-                        <TrieTable root="Expenses" options={&qs}/>
+                        <TrieTable root="Expenses" options={qs}/>
                     </div>
                 </>
             }
