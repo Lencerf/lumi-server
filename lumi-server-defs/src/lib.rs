@@ -19,6 +19,7 @@ pub struct FilterOptions {
     pub page: Option<usize>,
     pub old_first: Option<bool>,
     pub account: Option<String>,
+    pub time: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Eq, Default)]

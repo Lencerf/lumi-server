@@ -1,3 +1,4 @@
+use chrono::Datelike;
 use lumi::{BalanceSheet, Error, Ledger, Transaction, TxnFlag};
 use lumi_server_defs::{
     FilterOptions, JournalItem, Position, RefreshTime, TrieNode, TrieOptions, TrieTable,
@@ -205,6 +206,13 @@ pub async fn account_journal(
             filter_account(txn, account)
         }));
     };
+    if let Some(time) = &options.time {
+        if let Ok(year) = time.parse::<i32>() {
+            filters.push(Box::new(move |txn: &Transaction| {
+                txn.date().year() == year
+            }));
+        }
+    }
     let txns: Vec<_> = ledger
         .txns()
         .iter()
